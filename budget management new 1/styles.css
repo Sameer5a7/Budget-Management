@@ -1,0 +1,295 @@
+/* Reset default styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* ✅ Global Styles */
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f4f7f6;
+  text-align: center;
+  padding: 20px;
+}
+
+/* ✅ Container */
+.container {
+  max-width: 400px;
+  margin: auto;
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+ 
+}
+
+/* ✅ Headers */
+h1 {
+  color: #007bff;
+  margin-bottom: 20px;
+}
+
+/* ✅ Form Elements */
+form {
+  display: flex;
+  flex-direction: column;
+}
+
+input, select, button, textarea {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 5px;
+  border: 1px solid #ddd;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: #007bff;
+}
+
+/* ✅ Buttons */
+button {
+  background-color: #28a745;
+  color: white;
+  cursor: pointer;
+  border: none;
+}
+
+button:hover {
+  background-color: #218838;
+}
+
+button.logout {
+  background-color: #dc3545;
+  margin-top: 10px;
+}
+
+button.logout:hover {
+  background-color: #c82333;
+}
+
+/* ✅ Links */
+p {
+  text-align: center;
+  margin-top: 10px;
+}
+
+a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* ✅ Budget Section */
+#budget-section {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 10px;
+  width: 350px;
+  margin: 20px auto;
+  text-align: center;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* 🔹 Budget Input Box */
+.budget-input-container {
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.budget-input-container input {
+  width: 70%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  margin-right: 5px;
+}
+
+/* ✅ Expense & Income Side-by-Side Layout */
+#transactions-container {
+  display: flex;
+  justify-content: space-around;
+  margin: 20px auto;
+  width: 80%;
+  flex-wrap: wrap;
+}
+
+/* ✅ Styling for Forms */
+.form-container {
+  width: 45%;
+  background: #fff;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.form-container h3 {
+  color: #333;
+}
+
+.form-container form {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-container input, 
+.form-container textarea {
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.form-container button {
+  background-color: #28a745;
+  color: white;
+}
+
+.form-container button:hover {
+  background-color: #218838;
+}
+
+/* ✅ Expense & Income Lists */
+ul {
+  list-style-type: none;
+  padding: 0;
+  margin-top: 10px;
+}
+
+li {
+  background: #f1f1f1;
+  margin: 5px 0;
+  padding: 8px;
+  border-radius: 5px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* ✅ Dashboard Styling */
+#user-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+#user-table, th, td {
+  border: 1px solid #ddd;
+  padding: 10px;
+}
+
+th {
+  background-color: #007bff;
+  color: white;
+}
+
+/* ✅ Admin Dashboard */
+#admin-dashboard {
+  max-width: 800px;
+  margin: auto;
+}
+
+#user-list li {
+  padding: 10px;
+  background-color: #f8f9fa;
+  border: 1px solid #ddd;
+  margin: 5px 0;
+}
+
+/* ✅ Responsive Design */
+@media (max-width: 800px) {
+  #transactions-container {
+      flex-direction: column;
+      align-items: center;
+  }
+
+  .form-container {
+      width: 90%;
+      margin-bottom: 20px;
+  }
+}
+
+@media (max-width: 600px) {
+  .container {
+      width: 90%;
+  }
+
+  #budget-section {
+      width: 90%;
+  }
+}
+
+.logout-btn {
+  position: fixed; /* Keeps it fixed on the left */
+  top: 10px; /* Adjust as needed */
+  left: 10px; /* Align to the left */
+}
+
+#logout.logout {
+  background-color: red; /* Red background */
+  color: white; /* White text */
+  border: none; /* Remove border */
+  padding: 5px 10px; /* Small padding */
+  font-size: 12px; /* Small font size */
+  cursor: pointer; /* Pointer cursor on hover */
+  border-radius: 5px; /* Rounded corners */
+  width: 100px; /* Set width to auto to prevent full width */
+  height: auto; /* Set height to auto to prevent full height */
+  font-weight: bold; /* Bold text */
+  text-align: center; /* Center text horizontally */
+  line-height: normal; /* Normal line height */
+}
+
+/* Hover effect for the logout button */
+#logout.logout:hover {
+  background-color: darkred; /* Darker red on hover */
+}
+
+
+.control-buttons {
+  display: flex; /* Use flexbox for layout */
+  justify-content: center; /* Center the buttons horizontally */
+  margin-top: 20px; /* Margin at the top */
+}
+
+.control-buttons button {
+  background-color: #ff9800; /* Orange color */
+  color: white; /* Text color */
+  padding: 10px 20px; /* Padding for button */
+  margin: 5px; /* Margin between buttons */
+  border: none; /* Remove border */
+  border-radius: 5px; /* Rounded corners */
+  cursor: pointer; /* Pointer cursor on hover */
+  font-size: 16px; /* Font size */
+  transition: background-color 0.3s; /* Smooth transition for hover effect */
+}
+
+/* Button Hover Effect */
+.control-buttons button:hover {
+  background-color: #e68900; /* Darker orange shade on hover */
+}
+
+/* Specific Styles for Reset Buttons */
+#reset-expenses {
+  background-color: #ff5722; /* Red-orange color for reset expenses */
+}
+
+#reset-expenses:hover {
+  background-color: #e64a19; /* Darker shade on hover */
+}
+
+#reset-income {
+  background-color: #ff5722; /* Orange color for reset income */
+}
+
+#reset-income:hover {
+  background-color: #e64a19; /* Darker shade on hover */
+}

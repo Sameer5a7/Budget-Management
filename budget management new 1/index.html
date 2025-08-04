@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Budget Management</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <h1><center>Budget Management</center></h1>
+  <p><b>Welcome  <span id="username"></span></b></p>
+
+  <div class="logout-btn">
+    <button id="logout" class="logout">Logout</button>
+</div>
+  
+
+  <!-- Budget Section (Centered) -->
+  <div id="budget-section" style="text-align: center; margin-bottom: 20px;">
+    <h2>Budget</h2>
+    <input type="number" id="budget-input" placeholder="Enter Budget (₹)" />
+    <button id="set-budget">Set Budget</button>
+    <button id="reset-budget">Reset Budget</button> <!-- Reset Budget Button -->
+    <div>Budget: ₹<span id="budget-amount">0</span></div>
+    <div>Remaining Budget: ₹<span id="remaining-budget">0</span></div>
+    <div>Total Expenses: ₹<span id="total-expenses">0</span></div>
+    <div>Total Income: ₹<span id="total-income">0</span></div>
+  </div>
+
+<!-- Add this section in the index.html file -->
+<div style="text-align: center; margin-top: 20px;">
+    <button id="add-income" onclick="window.location.href='add-income.html'">Add Income</button>
+    <button id="add-expense" onclick="window.location.href='add-expense.html'">Add Expense</button>
+</div>
+<div id="expense-income-container" style="display: flex; justify-content: space-around; gap: 20px;">
+    <div style="flex: 1;">
+        <h3>Expenses</h3>
+        <ul id="expense-list"></ul>
+    </div> 
+
+    <div style="flex: 1;">
+        <h3>Other Source of Income</h3>
+        <ul id="income-list"></ul>
+    </div>
+  </div>
+
+  <!-- Control Buttons -->
+ 
+<div class="control-buttons">
+    <button id="download-pdf">Download Report (PDF)</button>
+    <button id="reset-expenses">Reset Expenses</button>
+    <button id="reset-income">Reset Income</button>
+</div>
+  <script src="auth.js"></script>
+  <script src="server.js"></script>
+  <script src="script.js"></script>
+  
+  <script>
+
+    let currentBudget = 0; // Variable to hold the current budget
+
+    // Fetch user expenses and income on page load
+    document.addEventListener("DOMContentLoaded", async function() {
+        await loadExpensesFromLocalStorage(); // Load expenses from local storage
+        await loadIncomeFromLocalStorage(); // Load income from local storage
+        await checkSession(); // Check if user is logged in
+    });
+
+    // Function to check session and fetch user data
+    async function checkSession() {
+        const response = await fetch("http://localhost:4000/session", { credentials: "include" });
+        if (response.ok) {
+            // User is logged in, fetch data
+            await fetchBudget(); // Fetch budget after loading expenses and income
+            await fetchUsersExpenses(); // Fetch expenses
+            await fetchUsersIncome(); // Fetch income
+            const userData = await response.json();
+            document.getElementById("username").innerText = userData.user.username; // Display username
+        } else {
+            alert("Please log in.");
+        }
+    }
+
+    // Function to fetch user expenses
+    async function fetchUsersExpenses() {
+        const response = await fetch("http://localhost:4000/expenses", { credentials: "include" });
+        const expenses = await response.json();
+        const expenseList = document.getElementById("expense-list");
+        expenseList.innerHTML = ''; // Clear existing list
+
+        let totalExpenses = 0; // Initialize total expenses
+
+        expenses.forEach(expense => {
+            addExpenseToList(expense); // Use the function to add to the list
+            totalExpenses += Number(expense.amount); // Sum up the expenses
+            saveExpenseToLocalStorage(expense); // Save to local storage
+        });
+
+        // Update total expenses displayed
+        document.getElementById("total-expenses").innerText = totalExpenses; // Update total expenses
+    }
+
+    // Function to fetch user income
+    async function fetchUsersIncome() {
+        const response = await fetch("http://localhost:4000/income", { credentials: "include" });
+        const income = await response.json();
+        const incomeList = document.getElementById("income-list");
+        incomeList.innerHTML = ''; // Clear existing list
+
+        let totalIncome = 0; // Initialize total income
+
+        income.forEach(incomeItem => {
+            addIncomeToList(incomeItem); // Use the function to add to the list
+            totalIncome += Number(incomeItem.amount); // Sum up the income
+            saveIncomeToLocalStorage(incomeItem); // Save to local storage
+        });
+
+        // Update total income displayed
+        document.getElementById("total-income").innerText = totalIncome; // Update total income
+    }
+
+    // Function to fetch user budget
+    async function fetchBudget() {
+        try {
+            const response = await fetch("http://localhost:4000/budget", { credentials: "include" });
+            if (!response.ok) {
+                throw new Error("Failed to fetch budget.");
+            }
+            const budgetData = await response.json();
+            currentBudget = budgetData.budget || 0; // Store the current budget
+            // Update the UI with the fetched budget data
+            document.getElementById("budget-amount").innerText = currentBudget;
+            document.getElementById("total-expenses").innerText = budgetData.totalExpenses || 0;
+            document.getElementById("total-income").innerText = budgetData.totalIncome || 0;
+            document.getElementById("remaining-budget").innerText = (currentBudget - (budgetData.totalExpenses || 0)) || 0;
+        } catch (error) {
+            console.error("Error fetching budget:", error);
+            alert("Could not load budget data. Please try again later.");
+        }
+    }
+
+    // Event Listener for Setting Budget
+    document.getElementById("set-budget").addEventListener("click", async function () {
+        const budgetInput = Number(document.getElementById("budget-input").value);
+
+        if (!budgetInput || budgetInput <= 0) {
+            alert("Please enter a valid budget amount.");
+            return;
+        }
+
+        try {
+            const response = await fetch("http://localhost:4000/set-budget", {
+                method: "POST",
+                credentials: "include",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ budget: budgetInput })
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to set budget.");
+            }
+
+            const data = await response.json();
+            currentBudget = data.budget; // Update current budget
+            document.getElementById("budget-amount").innerText = currentBudget;
+            document.getElementById("remaining-budget").innerText = currentBudget - Number(document.getElementById("total-expenses").innerText || 0);
+            alert("Budget updated successfully!");
+        } catch (error) {
+            console.error("Error setting budget:", error);
+            alert("Failed to set budget: " + error.message);
+        }
+    });
+
+ // Function to update the budget
+function updateBudget(expenseAmount) {
+    const remainingBudget = currentBudget - Number(expenseAmount);
+    document.getElementById("remaining-budget").innerText = remainingBudget;
+    document.getElementById("budget-amount").innerText = currentBudget; // Update budget display
+
+}
+
+    // Function to add expense to the list
+    function addExpenseToList(expense) {
+        const expenseList = document.getElementById("expense-list");
+        const expenseItem = document.createElement("li");
+
+        // Format the date to only show the date part (YYYY-MM-DD)
+        const formattedDate = new Date(expense.date).toISOString().split('T')[0]; // Get only the date part
+
+        expenseItem.textContent = `${expense.name} - ₹${expense.amount} -${expense.notes}on ${formattedDate}`;
+        expenseList.appendChild(expenseItem);
+
+        // Update total expenses displayed
+        const totalExpensesElement = document.getElementById("total-expenses");
+        const currentTotalExpenses = Number(totalExpensesElement.innerText);
+        totalExpensesElement.innerText = currentTotalExpenses + Number(expense.amount);
+    }
+
+
+    // Function to add income to the list
+    function addIncomeToList(income) {
+        const incomeList = document.getElementById("income-list");
+        const incomeItem = document.createElement("li");
+        
+        const formattedDate = new Date(income.date).toISOString().split('T')[0];
+
+        incomeItem.textContent = `${income.source} - ₹${income.amount} -${income.notes} on ${formattedDate}`;
+        incomeList.appendChild(incomeItem);
+
+        
+
+        // Update total income displayed
+        const totalIncomeElement = document.getElementById("total-income");
+        const currentTotalIncome = Number(totalIncomeElement.innerText);
+        totalIncomeElement.innerText = currentTotalIncome + Number(income.amount);
+    }
+
+    // Handle Reset Expenses
+    document.getElementById("reset-expenses").addEventListener("click", async () => {
+        const data = await fetchAPI("http://localhost:4000/reset-expenses", "POST");
+        if (data) {
+            alert(data.message);
+            document.getElementById("expense-list").innerHTML = ''; // Clear the expense list
+            document.getElementById("total-expenses").innerText = '0'; // Reset total expenses
+            document.getElementById("remaining-budget").innerText = currentBudget; // Reset remaining budget to current budget
+            localStorage.removeItem('expenses'); // Clear expenses from local storage
+        }
+    });
+
+    // Handle Reset Income
+    document.getElementById("reset-income").addEventListener("click", async () => {
+        const data = await fetchAPI("http://localhost:4000/reset-income", "POST");
+        if (data) {
+            alert(data.message);
+            document.getElementById("income-list").innerHTML = ''; // Clear the income list
+            document.getElementById("total-income").innerText = '0'; // Reset total income
+            localStorage.removeItem('income'); // Clear income from local storage
+        }
+    });
+
+    // Handle Reset Budget
+    document.getElementById("reset-budget").addEventListener("click", async () => {
+        const data = await fetchAPI("http://localhost:4000/reset-budget", "POST");
+        if (data) {
+            alert(data.message);
+            document.getElementById("budget-amount").innerText = '0'; // Reset displayed budget
+            document.getElementById("remaining-budget").innerText = '0'; // Reset remaining budget
+        }
+    });
+
+   
+// Route to generate PDF report
+document.getElementById("download-pdf").addEventListener("click", async function() {
+        try {
+            const response = await fetch("http://localhost:4000/download-report", {
+                method: "GET",
+                credentials: "include"
+            });
+
+            if (!response.ok) {
+                throw new Error("Network response was not ok " + response.statusText);
+            }
+
+            const blob = await response.blob(); // Get the PDF as a blob
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.style.display = "none";
+            a.href = url;
+            a.download = `report-${new Date().toISOString().split('T')[0]}.pdf`; // Set the filename
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url); // Clean up
+        } catch (error) {
+            console.error("Error downloading report:", error);
+            alert("Failed to download report: " + error.message);
+        }
+    });
+
+
+    // Save expense to local storage
+    function saveExpenseToLocalStorage(expense) {
+        let expenses = JSON.parse(localStorage.getItem('expenses')) || [];
+        expenses.push(expense);
+        localStorage.setItem('expenses', JSON.stringify(expenses));
+    }
+
+    // Load expenses from local storage
+    function loadExpensesFromLocalStorage() {
+        const expenses = JSON.parse(localStorage.getItem('expenses')) || [];
+        expenses.forEach(expense => {
+            addExpenseToList(expense); // Function to add expense to the UI
+        });
+    }
+
+    // Save income to local storage
+    function saveIncomeToLocalStorage(income) {
+        let incomeArray = JSON.parse(localStorage.getItem('income')) || [];
+        incomeArray.push(income);
+        localStorage.setItem('income', JSON.stringify(incomeArray));
+    }
+
+    // Load income from local storage
+    function loadIncomeFromLocalStorage() {
+        const income = JSON.parse(localStorage.getItem('income')) || [];
+        income.forEach(incomeItem => {
+            addIncomeToList(incomeItem); // Function to add income to the UI
+        });
+    }
+
+    // Save budget to local storage
+function saveBudgetToLocalStorage(budget) {
+    localStorage.setItem('budget', JSON.stringify(budget));
+}
+
+// Load budget from local storage
+function loadBudgetFromLocalStorage() {
+    const budget = JSON.parse(localStorage.getItem('budget')) || 0; // Default to 0 if not found
+    document.getElementById("budget-amount").innerText = budget; // Update the UI with the loaded budget
+}
+</script>
+</body>
+</html>

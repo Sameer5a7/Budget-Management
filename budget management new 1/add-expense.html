@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Expense</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Add Expense</h1>
+        <form id="expense-form">
+            <input type="text" id="expense-name" placeholder="Expense Name" required />
+            <input type="number" id="expense-amount" placeholder="Amount (₹)" required />
+            <textarea id="expense-notes" placeholder="Add notes"></textarea>
+            <input type="date" id="expense-date" required />
+            <button type="submit">Add Expense</button>
+            <p id="expense-error-message" style="color: red; display: none;"></p>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('expense-form').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const name = document.getElementById('expense-name').value;
+            const amount = document.getElementById('expense-amount').value;
+            const date = document.getElementById('expense-date').value;
+            const notes = document.getElementById('expense-notes').value;
+            const errorMessage = document.getElementById('expense-error-message');
+
+            errorMessage.style.display = 'none'; // Hide previous error messages
+
+            try {
+                const response = await fetch('http://localhost:4000/expenses', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, amount, date, notes }),
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to add expense.');
+                }
+
+                alert(data.message); // Notify user
+                window.location.href = 'index.html'; // Redirect to main page
+            } catch (error) {
+                errorMessage.textContent = error.message;
+                errorMessage.style.display = 'block'; // Show error message
+            }
+        });
+        
+      
+    </script>
+</body>
+</html>

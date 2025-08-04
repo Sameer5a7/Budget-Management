@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login</title>
+  <link rel="stylesheet" href="styles.css">
+</head
+>
+<body>
+  <div class="container">
+    <h1>Login</h1>
+    <form id="login-form">
+      <input type="email" id="login-email" placeholder="Email" required />
+      <input type="password" id="login-password" placeholder="Password" required />
+      <button type="submit" id="login-button">Login</button>
+      <p id="error-message" style="color: red; display: none;"></p>
+    </form>
+    <p>Don't have an account? <a href="register.html">Register</a></p>
+    <p><a href="forgot-password.html">Forgot Password?</a></p>
+
+    <!-- Financial Data Display -->
+    <div id="financial-data" style="display: none;">
+        <h2>Financial Overview</h2>
+        <p>Budget: <span id="budget-amount">0</span></p>
+        <p>Total Expenses: <span id="total-expenses">0</span></p>
+        <p>Total Income: <span id="total-income">0</span></p>
+        <p>Remaining Budget: <span id="remaining-budget">0</span></p>
+      </div>
+    </div> 
+
+  <script>
+    // Check if user is already logged in when the page loads
+    async function checkSession() {
+        try {
+            const response = await fetch("http://localhost:4000/session", { credentials: "include" });
+            const data = await response.json();
+
+            if (data.loggedIn) {
+                // Redirect based on user role
+                if (data.user.role === "admin") {
+                    window.location.href = "admin-dashboard.html";
+                } else {
+                    window.location.href = "index.html"; // Redirect to user dashboard
+                }
+            }
+        } catch (error) {
+            console.error("Session check error:", error);
+        }
+    }
+
+    checkSession(); // Call the session check function
+
+    // Login Form Submission
+    document.getElementById("login-form").addEventListener("submit", async function(event) {
+        event.preventDefault(); // Prevent default form submission
+
+        const email = document.getElementById("login-email").value.trim();
+        const password = document.getElementById("login-password").value;
+        const errorMessage = document.getElementById("error-message");
+        const loginButton = document.getElementById("login-button");
+
+        errorMessage.style.display = "none"; // Hide error message initially
+        loginButton.disabled = true;
+        loginButton.textContent = "Logging in...";
+
+        try {
+            const response = await fetch("http://localhost:4000/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, password }),
+                credentials: "include" // Ensures session cookies are stored
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || "Invalid email or password");
+            }
+
+            alert(data.message);
+
+            // Update the UI with user financial data
+            document.getElementById("budget-amount").innerText = data.user.budget;
+            document.getElementById("total-expenses").innerText = data.user.totalExpenses;
+            document.getElementById("total-income").innerText = data.user.totalIncome;
+            document.getElementById("remaining-budget").innerText = (data.user.budget - data.user.totalExpenses).toFixed(2);
+
+            // Show financial data section
+            document.getElementById("financial-data").style.display = "block";
+
+            // Redirect based on user role
+            if (data.user.role === "admin") {
+                window.location.href = "admin-dashboard.html";
+            } else {
+                window.location.href = "index.html"; // Redirect to user dashboard
+            }
+        } catch (error) {
+            console.error("Error:", error);
+            errorMessage.textContent = error.message || "Server error. Please try again later.";
+            errorMessage.style.display = "block"; // Show error message
+        } finally {
+            loginButton.disabled = false;
+            loginButton.textContent = "Login";
+        }
+    });
+
+// In the login.js file, after successful login
+if (data.user.role === "admin") {
+    window.location.href = "admin-dashboard.html"; // Redirect to admin dashboard
+} else {
+    window.location.href = "index.html"; // Redirect to user dashboard
+}
+</script>
+
+   
+</body>
+</html>

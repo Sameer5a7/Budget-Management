@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Admin Dashboard</h1>
+        <button id="logout">Logout</button>
+        <h2>User Management</h2>
+        <table id="user-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="user-list">
+                <!-- User details will be populated here -->
+            </tbody>
+        </table>
+
+        <h2>Edit User</h2>
+        <form id="edit-user-form" style="display: none;">
+            <input type="hidden" id="edit-user-id" />
+            <input type="text" id="edit-username" placeholder="Username" required />
+            <input type="email" id="edit-email" placeholder="Email" required />
+            <button type="submit">Update User</button>
+            <p id="edit-error-message" style="color: red; display: none;"></p>
+        </form>
+    </div>
+    <script src="createAdmin.js"></script>
+    <script src="server.js"></script>
+    <script>
+        // Fetch users on page load
+        document.addEventListener("DOMContentLoaded", fetchUsers);
+
+        async function fetchUsers() {
+            try {
+                const response = await fetch("http://localhost:4000/users", { credentials: "include" });
+                const users = await response.json();
+                const userList = document.getElementById("user-list");
+                userList.innerHTML = ''; // Clear existing users
+
+                users.forEach(user => {
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                        <td>${user.id}</td>
+                        <td>${user.username}</td>
+                        <td>${user.email}</td>
+                        <td><button onclick="editUser (${user.id}, '${user.username}', '${user.email}')">Edit</button></td>
+                    `;
+                    userList.appendChild(row);
+                });
+            } catch (error) {
+                console.error("Error fetching users:", error);
+            }
+        }
+
+        function editUser (id, username, email) {
+            document.getElementById("edit-user-id").value = id;
+            document.getElementById("edit-username").value = username;
+            document.getElementById("edit-email").value = email;
+            document.getElementById("edit-user-form").style.display = "block";
+        }
+
+        document.getElementById("edit-user-form").addEventListener("submit", async function(event) {
+    event.preventDefault();
+    const id = document.getElementById("edit-user-id").value;
+    const username = document.getElementById("edit-username").value;
+    const email = document.getElementById("edit-email").value;
+
+    try {
+        const response = await fetch(`http://localhost:4000/users/${id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, email }),
+            credentials: "include"
+        });
+
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Failed to update user.");
+
+        alert(data.message);
+        fetchUsers(); // Refresh user list
+        document.getElementById("edit-user-form").reset();
+        document.getElementById("edit-user-form").style.display = "none";
+    } catch (error) {
+        console.error("Error updating user:", error);
+        document.getElementById("edit-error-message").textContent = error.message;
+        document.getElementById("edit-error-message").style.display = "block";
+    }
+});
+
+        document.getElementById("logout").addEventListener("click", async () => {
+            const response = await fetch("http://localhost:4000/logout", { method: "POST", credentials: "include" });
+            if (response.ok) {
+                window.location.href = "login.html"; // Redirect to login
+            }
+        });
+    </script>
+</body>
+</html>

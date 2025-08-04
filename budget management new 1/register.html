@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Register</h1>
+    <form id="register-form">
+      <input type="text" id="register-username" placeholder="Username" required />
+      <input type="email" id="register-email" placeholder="Email" required />
+      <input type="password" id="register-password" placeholder="Password" required minlength="6" />
+      
+      <label for="register-gender">Gender:</label>
+      <select id="register-gender" required>
+        <option value="" disabled selected>Select Gender</option>
+        <option value="male">Male</option>
+        <option value="female">Female</option>
+        <option value="other">Other</option>
+      </select>
+
+      <label for="register-dob">Date of Birth:</label>
+      <input type="date" id="register-dob" required />
+
+      <button type="submit">Register</button>
+      <p id="error-message" style="color: red; display: none;"></p>
+    </form>
+    <p>Already have an account? <a href="login.html">Login</a></p>
+  </div>
+
+  <script>
+  document.getElementById('register-form').addEventListener('submit', async function(event) {
+    event.preventDefault();
+
+    const username = document.getElementById('register-username').value.trim();
+    const email = document.getElementById('register-email').value.trim();
+    const password = document.getElementById('register-password').value.trim();
+    const gender = document.getElementById('register-gender').value;
+    const dob = document.getElementById('register-dob').value;
+    const errorMessage = document.getElementById('error-message');
+
+    // Clear previous error messages
+    errorMessage.style.display = 'none';
+
+    // Validate email format
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      errorMessage.textContent = 'Invalid email format.';
+      errorMessage.style.display = 'block';
+      return;
+    }
+
+    // Validate password length
+    if (password.length < 6) {
+      errorMessage.textContent = 'Password must be at least 6 characters long.';
+      errorMessage.style.display = 'block';
+      return;
+    }
+
+    // Validate age (must be at least 18)
+    const birthDate = new Date(dob);
+    const today = new Date();
+    const age = today.getFullYear() - birthDate.getFullYear();
+    if (age < 18) {
+      errorMessage.textContent = 'You must be at least 18 years old to register.';
+      errorMessage.style.display = 'block';
+      return;
+    }
+
+    try {
+      const response = await fetch('http://localhost:4000/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, email, password, gender, dob }),
+        credentials: 'include'
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Registration failed.');
+      }
+
+      alert(data.message);
+      window.location.href = 'login.html'; // Redirect to login after successful registration
+    } catch (error) {
+      console.error('Error:', error);
+      errorMessage.textContent = error.message || 'Server error. Please try again later.';
+      errorMessage.style.display = 'block'; // Show error message
+    }
+  });
+  </script>
+</body>
+</html>
